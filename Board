@@ -1,0 +1,364 @@
+import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.Random;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+/*
+ * @author Gwen Hardwick and Jack Mills This method creates the board for the game, adding the
+ * buttons and randomly picking which animals will be added and assigning them
+ * to the buttons so that they aren't displayed incorrectly
+ */
+public class Board extends JFrame {
+
+  // fields for the board
+  private ArrayList<Card> cardList; // ArrayList for the cards
+  private JPanel board; // Panel for the board (comes in through the constructor)
+  private int turnCount; // number of turns taken
+  private int buttonsClicked;
+  private Card c1;
+  private Card c2;
+  private String backPath;
+  private String difficulty;
+
+  private static final String EASY_DIFFICULTY = "EASY";
+
+  /**
+   * Constructor
+   * Sets up an easy board
+   * @param panel
+   */
+  public Board(JPanel panel) {
+
+    backPath = "back_easy.png";
+    board = panel;
+    panel.setLayout(new GridLayout(4, 5));
+    turnCount = 0;
+
+    cardList = new ArrayList<Card>();
+
+    randomizeBoard(chooseCardsEasy());
+
+  }
+
+  /**
+   * Constructor that takes into acount difficulty 
+   * Easy makes a 4x5
+   * Hard makes a 6x6
+   * @param panel
+   * @param difficulty
+   */
+  public Board(JPanel panel, String difficulty) {
+
+    if (difficulty.equals(EASY_DIFFICULTY)) {
+
+      this.difficulty = "easy";
+      backPath = "back_easy.png";
+      board = panel;
+      turnCount = 0;
+      cardList = new ArrayList<Card>();
+
+      panel.setLayout(new GridLayout(4, 5));
+
+      randomizeBoard(chooseCardsEasy());
+
+    }
+
+    else {
+
+      this.difficulty = "hard";
+      backPath = "back_hard.png";
+      board = panel;
+      turnCount = 0;
+      cardList = new ArrayList<Card>();
+
+      panel.setLayout(new GridLayout(6, 6));
+
+      randomizeBoard(chooseCardsHard());
+
+    }
+
+  }
+
+  /**
+   * 
+   * @return difficulty
+   */
+  public String getDifficulty() {
+    return difficulty;
+  }
+
+  /**
+   * randomly chooses the images for the cards for an easy board
+   * 
+   * @return ArrayList of random ints (from 1-18)
+   */
+  public ArrayList<Integer> chooseCardsEasy() {
+
+    ArrayList<Integer> a = new ArrayList<Integer>();
+
+    for (int i = 18; i > 0; i--) {
+      a.add(i);
+    }//Adding numbers 1-18 to an arrayList
+
+    int index, temp;
+    Random random = new Random();
+
+    for (int i = 17; i > 0; i--) {
+
+      index = random.nextInt(i + 1);
+      temp = a.get(index);
+
+      a.set(index, a.get(i));
+      a.set(i, temp);
+
+    } //randomizing the arrayList
+
+    //removing 8 numbers from the arrayList (so that we have 10 numbers left)
+    a.remove(17);
+    a.remove(16);
+    a.remove(15);
+    a.remove(14);
+    a.remove(13);
+    a.remove(12);
+    a.remove(11);
+    a.remove(10);
+
+    for (int i = 0; i < 10; i++) {
+      a.add(a.get(i));
+    }//making it so we have an arrayList of ints (1-10) that is 20 long (2 of each int)
+
+    for (int i = 19; i > 0; i--) {
+
+      index = random.nextInt(i + 1);
+      temp = a.get(index);
+
+      a.set(index, a.get(i));
+      a.set(i, temp);
+
+    }//randomizing the location of the numbers
+
+    return a;
+  }
+
+  /**
+   * A method to randomize and choose the images for the hard board
+   * This uses all 18 images
+   */
+  public ArrayList<Integer> chooseCardsHard() {
+
+    ArrayList<Integer> a = new ArrayList<Integer>();
+
+    for (int i = 18; i > 0; i--) {
+      a.add(i);
+    } // Creates an int List with 18 numbers (one for each animal picture)
+
+    int index, temp;
+    Random random = new Random(); // Sets up random
+
+    for (int i = 17; i > 0; i--) { // Loops 17 times
+
+      index = random.nextInt(i + 1); // saves a random number
+      temp = a.get(index); // saves the number (from a) At the random index
+
+      a.set(index, a.get(i)); // Sets the number at the random index
+      a.set(i, temp); // sets the number at i to the number that was at the random index?
+
+    } // Randomizes the numbers
+
+    for (int i = 0; i < 18; i++) {
+      a.add(a.get(i));
+    } // Creates pairs (two of each number)
+
+    for (int i = 35; i > 0; i--) {
+
+      index = random.nextInt(i + 1);
+      temp = a.get(index);
+
+      a.set(index, a.get(i));
+      a.set(i, temp);
+
+    } // more randomization,
+
+    return a; // returns the list with two of each image that we are using; In this case 2 of every image
+  }
+
+  /**
+   * Creates the board and adds cards
+   * 
+   * @param ArrayList of ints (created in chooseCards())
+   */
+  public void randomizeBoard(ArrayList<Integer> a) {
+
+    String frontPath;
+
+    for (int i = 0; i < a.size(); i++) {
+
+      frontPath = a.get(i) + ".png";
+      cardList.add(new Card(board, frontPath, backPath));
+
+    }
+
+  }
+
+
+  /**
+   * Checks if the player has won the player has won if all cards are faceUp
+   * 
+   * @return boolean (true if player won, false if player has not yet won)
+   */
+  public boolean checkWin() {
+
+    int frontCount = 0;
+
+    for (Card c : cardList) {
+
+      if (c.getFaceUpPic().equals(c.getPic())) {
+        frontCount++;
+      }
+
+    }
+
+    if (frontCount == cardList.size()) {
+      return true;
+    } 
+
+    else {
+      return false;
+    }
+
+  }
+
+  /**
+   * 
+   * @return the number of turns the player has taken
+   */
+  public int getScore() {
+
+    return turnCount;
+
+  }
+
+  /**
+   * Counts the number of cards that have been flipped (counter gets reset at the end of each turn)
+   * If a card has been flipped, that value is saved 
+   * @return the number of cards flipped
+   */
+  public int numBsClicked() {
+
+    buttonsClicked = 0;
+
+    for (int i = 0; i < cardList.size(); i++) {
+
+      if (cardList.get(i).getButtonClicked()) {
+
+        buttonsClicked++;
+
+        if (buttonsClicked == 1) {
+          c1 = cardList.get(i);
+        } 
+
+        else {
+          c2 = cardList.get(i);
+        }
+
+      }
+
+    }
+
+    return buttonsClicked;
+  }
+
+  /**
+   * Tells all cards they have not been flipped yet
+   */
+  public void clearClicks() {
+
+    for (Card c : cardList) {
+      c.setClicked(false);
+    }
+
+  }
+
+  /**
+   * Increments the turn counter
+   */
+  public void addTurn() {
+    turnCount++;
+  }
+
+  /**
+   * Checks if two cards are equal
+   * @return true if equal, false if not
+   */
+  public boolean checkCards() {
+
+    if (c1.equals(c2)) {
+      return true;
+    }
+
+    else {
+      return false;
+    }
+
+  }
+
+  /**
+   * Flips over both saved cards
+   */
+  public void flipOver() {
+
+    c1.flipCard();
+    c2.flipCard();
+
+  }
+
+
+  /**
+   * removes Actionlistener from the saved cards
+   * this disables it without making the icon grey
+   */
+  public void setUnclickable() {
+
+    c1.noClick();
+    c2.noClick();
+
+  }
+
+  /**
+   * adds actionListener to the card
+   */
+  public void setClickable() {
+
+    c1.yesClick();
+    c2.yesClick();
+
+  }
+
+  /**
+   * removes ActionListener from all cards
+   */
+  public void setAllUnClickable() {
+
+    for (Card c : cardList) {
+      c.noClick();
+    }
+
+  }
+
+  /**
+   * adds ActionListener to all cards (except the saved ones)
+   */
+  public void setAllClickable() {
+
+    for (Card c : cardList) {
+
+      if (!(c.getFaceUpPic().equals(c.getPic()))) {
+        c.yesClick();
+      }
+
+    }
+
+  }
+
+}
