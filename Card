@@ -1,0 +1,182 @@
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+
+/**
+ * Card class, acts as tiles for the memory game If the card (button) is
+ * clicked, the image will swap
+ * 
+ * @author Gwen Hardwick and Jack Mills
+ */
+
+public class Card extends JButton implements ActionListener {
+
+  private Icon frontPicture;
+  private Icon backPicture;
+  private Icon faceUp;
+  private JButton flipB;
+  private String frontPath;
+  private boolean buttonClicked;
+
+  /**
+   * Constructor that makes the card, there are two images (Icons) for each card
+   * 
+   * @param panel
+   * @param frontPath file name of the front image (the animal)
+   * @param backPath  file name of the back image
+   */
+  public Card(JPanel panel, String frontPath, String backPath) {
+
+    // Setting up the icons;
+    this.frontPath = frontPath;
+    frontPicture = new ImageIcon(frontPath);
+    backPicture = new ImageIcon(backPath);
+    faceUp = backPicture; // to start, the icon is faceDown
+
+    // Setting up the button, adding it to the panel
+    flipB = new JButton(backPicture);
+    flipB.addActionListener(this);
+    panel.add(flipB);
+
+  }
+
+  /**
+   * @return String of the path for the front image
+   */
+  public String getFront() {
+    return frontPath;
+  }
+
+  /**
+   * @return Icon of front picture
+   */
+  public Icon getPic() {
+    return frontPicture;
+  }
+
+  /**
+   * @return Icon of the currently face up picture
+   */
+  public Icon getFaceUpPic() {
+    return faceUp;
+  }
+
+  /**
+   * Checks if two cards are equal base on the file name for their front image
+   * 
+   * @return boolean (true if equal, false if not)
+   */
+  public boolean equals(Object other) {
+
+    if (other == null) {
+      return false;
+    } //If the other object is null, they are not equal
+
+    if (this.getClass() == other.getClass()) { //if both objects are Cards
+
+      Card otherCard = (Card) other; //Casting
+
+      if (frontPath.equals(otherCard.getFront())) {
+        return true;//return true if they both have the same front image
+      }
+
+      else {//if front images are not the same, return false
+        return false;
+      }
+
+    }
+
+    else {//if both objects are not Cards, return false
+      return false;
+    }
+
+  }
+
+  /**
+   * Method to flip the card (change icon) 
+   */
+  public void flipCard() {
+
+    if (faceUp.equals(backPicture)) {
+
+      flipB.setIcon(frontPicture);
+      faceUp = frontPicture;
+
+    } 
+
+    else {
+
+      flipB.setIcon(backPicture);
+      faceUp = backPicture;
+
+    }
+
+  }
+
+  /**
+   * 
+   * @return boolean if the button has been clicked
+   */
+  public boolean getButtonClicked() {
+
+    return buttonClicked;
+
+  }
+
+  /**
+   * sets the value of buttonClicked
+   * @param b (a boolean)
+   */
+  public void setClicked(boolean b) {
+
+    buttonClicked = b;
+
+  }
+
+  /*
+   * Removes the actionListener from the button
+   */
+  public void noClick() {
+
+    flipB.removeActionListener(this);
+
+  }
+
+  /**
+   * adds the actionListener to the button
+   */
+  public void yesClick() {
+
+    flipB.addActionListener(this);
+
+  }
+
+  /**
+   * When the button is clicked change the picture
+   */
+  public void actionPerformed(ActionEvent e) {
+
+    buttonClicked = true;
+
+    noClick();//removes the actionListener
+
+    if (faceUp.equals(backPicture)) { //If the back image is faceup, set the icon to the front image
+
+      flipB.setIcon(frontPicture);
+      faceUp = frontPicture; //set the faceup image to be the front image
+
+    } 
+
+    else {//else, set the icon and faceup image to the back image
+
+      flipB.setIcon(backPicture);
+      faceUp = backPicture;
+
+    }
+
+  }
+
+}
