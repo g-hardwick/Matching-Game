@@ -1,0 +1,122 @@
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+
+/**
+ * Menu class, creates a menu for the memory game
+ * Menu can create a new game, set the difficulty (board size), or show the past scores
+ * @author Gwen Hardwick and Jack Mills
+ *
+ */
+
+public class Menu extends JMenu implements ActionListener{
+
+  private JButton newGameB;
+  private JButton quitB;
+  private JButton easyB;
+  private JButton hardB;
+  private String difficulty;
+  private Play p;
+  private JButton scoresTurn;
+  private JButton scoresTime;
+
+  private static final String EASY_DIFFICULTY = "EASY";
+  private static final String HARD_DIFFICULTY = "HARD";
+
+  /**
+   * Basic constructor, creates the menu and adds it to the panel
+   * @param menuBar JMenuBar that the menus are being added to
+   * @param diff A string representation of the difficulty 
+   * @param p An instance of Play
+   */
+  public Menu(JMenuBar menuBar, String diff, Play p) {
+
+    difficulty = diff;
+    this.p = p;
+
+    //Creating menu bar and menus
+    JMenuBar menu = new JMenuBar();
+    JMenu mainMenu  = new JMenu("Menu");
+    JMenu difficulty  = new JMenu("Difficulty");
+    JMenu settings  = new JMenu("Settings");
+    JMenu scoreMenu = new JMenu("Scores");
+
+    //Creating buttons
+    newGameB = new JButton("New game");
+    newGameB.addActionListener(this);
+    quitB = new JButton("Quit");
+    quitB.addActionListener(this);
+    easyB = new JButton("Easy");
+    easyB.addActionListener(this);
+    hardB = new JButton("Hard");
+    hardB.addActionListener(this);
+    scoresTurn = new JButton("Scores by Turn");
+    scoresTurn.addActionListener(this);
+    scoresTime = new JButton("Scores by Time");
+    scoresTime.addActionListener(this);
+
+    //adding buttons to menus and difficulty menu to the main menu
+    mainMenu.add(newGameB);
+    mainMenu.add(quitB);
+    difficulty.add(easyB);
+    difficulty.add(hardB);
+    scoreMenu.add(scoresTurn);
+    scoreMenu.add(scoresTime);
+    settings.add(difficulty);
+
+    //adding menus to menubar and menubar to panel
+    menu.add(mainMenu);
+    menu.add(settings);
+    menu.add(scoreMenu);
+    menuBar.add(menu);
+
+  }
+
+  /**
+   * @return the difficulty as a string
+   */
+  public String getDifficulty() {
+
+    return difficulty;
+
+  }
+
+
+  /**
+   * quitB closes the program
+   * newGameB causes the play instance to create a new game
+   * easyB sets difficulty to EASY (Will be used when newGameB is pressed)
+   * hardB sets difficulty to HARD (Will be used when newGameB is pressed)
+   * scores will call play to read the scores
+   */
+  public void actionPerformed(ActionEvent e) {
+
+    if(e.getSource()==quitB) {
+      System.exit(0);
+    }
+
+    else if(e.getSource()==newGameB) {
+      p.createGUI(difficulty);
+    }
+
+    else if(e.getSource()==easyB) {
+      difficulty = EASY_DIFFICULTY;
+    }
+
+    else if(e.getSource()==hardB) {
+      difficulty = HARD_DIFFICULTY;
+    }
+
+    else if(e.getSource()==scoresTurn) {
+      Play.readScoresTurn();
+    }
+    else if(e.getSource()==scoresTime) {
+      Play.readScoresTime();
+    }
+  }
+
+}
