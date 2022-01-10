@@ -1,0 +1,110 @@
+import java.awt.Dimension;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+/*
+ * This class keeps a timer running so you can compare how long it took you to complete each game
+ * 
+ * @author Gwen Hardwick and Jack Mills
+ */
+public class Timing extends JPanel {
+  
+  private JLabel label;
+  private Timer timer;
+  private int count;
+ 
+  
+  private static final int HOUR = 3600;
+  private static final int MINUTE = 60;
+
+  /**
+   * this is the major method for the class with the constructor, a Timer, and the actionPreformed thats called in
+   * @param board
+   */
+  public Timing(Board board) {
+    
+    label = new JLabel("Time Elapsed: 0:00");
+    setLayout(new GridBagLayout());
+    add(label);
+    
+    timer = new Timer(1000, new ActionListener() {
+      
+      public void actionPerformed(ActionEvent e) {
+        
+        count++;
+        
+        if (count < HOUR) {// if a user goes over an hour, assume that time doesn't matter anymore and stop the timer
+          
+          label.setText("Time Elapsed: " + getTime());
+        
+        } 
+        
+        else {
+          
+          ((Timer) (e.getSource())).stop();
+        
+        }
+        
+        if (board.checkWin()) {
+          
+          ((Timer) (e.getSource())).stop();
+        
+        }
+
+      }
+    
+    });
+    
+    
+    timer.setInitialDelay(1000); // second delay so the board has time to create and the user to actually see it
+    timer.start();
+    
+  }
+
+  /**
+   * gets the elapsed time
+   * 
+   * @return string representing the time taken (MINUTES:SECONDS)
+   */
+  public String getTime() {
+    
+    if ((count % MINUTE) < 10) {
+      
+      return count / MINUTE + ":0" + (count % 60);
+    
+    } 
+    
+    else if (count % MINUTE == 0) {
+      
+      return count / MINUTE + ":00";
+    
+    } 
+    
+    else if (count < MINUTE) {
+      
+      return "0:" + count;
+      
+    } 
+    
+    else {
+      
+      return count / MINUTE + ":" + (count % 60);
+      
+    }
+    
+  }
+
+  /**
+   * Sets the preferred size
+   */
+  public Dimension getPreferredSize() {
+    
+    return new Dimension(200, 50);
+    
+  }
+  
+}
