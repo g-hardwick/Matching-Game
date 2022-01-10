@@ -1,0 +1,380 @@
+import java.awt.BorderLayout;
+import java.io.BufferedOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.Collections;
+
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+
+/**
+ * Class that plays the game. Sets up the game window and adds board, menu and
+ * score to it; Also controls how we dispose of the window
+ * 
+ * @author Gwen Hardwick and Jack Mills
+ *
+ */
+
+public class Play {
+
+  private Board board;
+  private JTextArea score;
+  private JFrame frame;
+  private Menu menu;
+  private Timing timing;
+  
+  private static final int ONE_SECOND = 1000;
+  private static final int MINUTE = 60;
+
+  /**
+   * Constructor
+   * Calls the method to create a window
+   * @param difficulty
+   */
+  public Play(String difficulty) {
+
+    createGUI(difficulty);
+
+  }
+
+  /**
+   * Creates the board GUI
+   * 
+   * @param difficulty (EASY or HARD)
+   */
+  public void createGUI(String difficulty) {
+
+    try {
+      frame.dispose();
+    }catch(NullPointerException e) {
+      e.getStackTrace();
+    }
+
+    // Setting up JFrame
+    frame = new JFrame("Matching Game");
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+
+
+    // Creating panels
+    JPanel boardPanel = new JPanel();
+    JPanel scorePanel = new JPanel();
+
+    // Using a borderLayout so we can have 3 areas
+    // North for menu, center for game board, south for score board
+    frame.setLayout(new BorderLayout());
+
+    // menu
+    JMenuBar m = new JMenuBar();
+    menu = new Menu(m, difficulty, this);
+    frame.add(m, BorderLayout.NORTH);
+
+    // board
+    board = new Board(boardPanel, difficulty);
+    frame.add(boardPanel, BorderLayout.CENTER);
+
+    // Scoring
+    score = new JTextArea("Turns taken: " + board.getScore());
+    score.setEditable(false);
+    timing = new Timing(board);
+    scorePanel.add(timing);
+    scorePanel.add(score);
+
+    frame.add(scorePanel, BorderLayout.SOUTH);
+
+    frame.pack();
+    frame.setVisible(true);
+
+  }
+
+  /**
+   * This is the logic to play the game
+   * It lets the player click two images on the board, then compare those two images
+   * If they are the same, keep them face up, then begin the next turn
+   * When all cards are face up, the player has won. display out a message
+   */
+  public void turn() {
+
+    while (!(board.checkWin())) {// While the game has not been won (all cards are face up)
+      while (board.numBsClicked() < 2) {
+        // Store button info and let user click two cards
+        // Let user click another card
+      }
+
+      board.setAllUnClickable();// remove the actionListener from all buttons
+      // This keeps the icons not grayed out and prevents the user from clicking any
+      // while the game checks if the two are equal
+
+      board.addTurn(); // add a turn (for scoring)
+
+      try {
+        Thread.sleep(ONE_SECOND);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      } // After choosing both cards, make them stay face up for one second
+
+      board.setAllClickable(); // add the actionListener back to all the cards
+
+      // Check equality of cards
+      if (board.checkCards()) {// if equal set cards unclickable, leave face up
+        board.setUnclickable(); // remove the actinoListener from the two cards chosen that turn
+
+      } else { // if not equal, flip cards over
+        board.setClickable(); // put the actionListener back on
+        board.flipOver(); // flip the cards over (back image should be showing)
+      }
+
+      board.clearClicks(); // reset the counter for how many cards have been clicked
+
+      score.setText("Turns taken: " + board.getScore());// Make the score area show the new score
+
+      if (board.checkWin()) {
+
+        JOptionPane.showMessageDialog(null, "Yay you won!\nYour score is " + board.getScore() + " in " + timing.getTime() + " minutes!");
+        saveGame(board, timing); // save the game to our file
+
+      }
+
+    }
+
+  }
+
+  /**
+   * Saves the game to a .bin file
+   * 
+   * @param board
+   * @param timing
+   */
+  public static void saveGame(Board board, Timing timing) {
+
+    ObjectInputStream in = null;
+    ObjectOutputStream out = null;
+    ArrayList<Object> array = new ArrayList<Object>();
+
+    try { // first try loop for if there is already a saved game, it goes through all
+      // already entered values for the scores
+      in = new ObjectInputStream(new FileInputStream("MatchingGame.bin"));
+
+      while (true) {
+
+        Object o = in.readObject();
+        Object p = in.readObject();
+        Object l = in.readObject();
+
+        array.add(o);
+        array.add(p);
+        array.add(l);
+
+      }
+
+    } 
+
+    catch (IOException e) {
+
+      try { // second try for when the saved file either doesn't have any more data or
+        // doesn't exist yet
+        out = new ObjectOutputStream(new FileOutputStream("MatchingGame.bin"));
+        for (int i = 0; i < array.size(); i++) { // writes all the data from a former saved file back into the
+          // file
+          out.writeObject(array.get(i));
+        }
+
+        out.writeObject(board.getScore());
+        out.writeObject(board.getDifficulty());
+        out.writeObject(timing.getTime());
+        out.close();
+
+      } 
+
+      catch (IOException e1) {
+        System.out.println("IO Exception in Save Game Inner");
+      }
+
+    } 
+
+    catch (ClassNotFoundException e) {
+      System.out.println("Class not found in save game");
+    }
+
+  }
+
+  /**
+   * Method that reads the saved game
+   */
+
+  public static void readGame() {
+
+    ObjectInputStream in = null;
+    String welcome = "Welcome back! \nYour scores are:";
+
+    try {
+
+      in = new ObjectInputStream(new FileInputStream("MatchingGame.bin"));
+
+      while (true) {
+
+        Object o = in.readObject();
+        Object p = in.readObject();
+        Object l = in.readObject();
+
+        welcome = welcome + "\n" + o + " turns to win in " + l + " minutes at " + p + " difficulty";
+
+      }
+
+    }
+
+    catch (FileNotFoundException e1) {
+      welcome = "Let's play!";
+      JOptionPane.showMessageDialog(null, welcome);
+    }
+
+    catch (IOException e) {
+      JOptionPane.showMessageDialog(null, welcome);
+    } 
+
+    catch (ClassNotFoundException e3) {
+      System.out.println("Class not found Exception while reading play");
+    }
+
+  }
+
+  /**
+   * Method that will read the saved scores ordering them by the number of turns
+   */
+  public static void readScoresTurn() {
+
+    ObjectInputStream in = null;
+    String scores = "Your scores are:";
+    ArrayList<Integer> byTurn = new ArrayList<Integer>();
+    ArrayList<String> scoring = new ArrayList<String>();
+
+    try {
+      in = new ObjectInputStream(new FileInputStream("MatchingGame.bin"));
+
+      while (true) {
+
+        Object o = in.readObject();
+        Object p = in.readObject();
+        Object l = in.readObject();
+        byTurn.add((Integer) o);
+        scoring.add("\n" + o + " turns to win in " + l + " minutes at " + p + " difficulty");
+
+      }
+    } 
+    catch (FileNotFoundException e1) {
+
+      scores = "No scores yet!";
+      JOptionPane.showMessageDialog(null, scores);
+
+    } 
+
+    catch (IOException e) { //when at end of file, order
+
+      int currentIndex = 0;
+      int size = byTurn.size();
+
+      for(int i = 0; i<size; i++) {
+
+        currentIndex = byTurn.indexOf(Collections.min(byTurn));
+        scores = scores + scoring.get(currentIndex);
+
+        byTurn.remove(currentIndex);
+        scoring.remove(currentIndex);
+
+      }
+
+      JOptionPane.showMessageDialog(null, scores);
+
+    } 
+
+    catch (ClassNotFoundException e3) {
+
+      System.out.println("Class not found Exception while reading play");
+
+    }
+  }
+
+  /**
+   * Method that will read the saved scores ordering them by the time taken
+   */
+  public static void readScoresTime() {
+
+    ObjectInputStream in = null;
+    String scores = "Your scores are:";
+    ArrayList<Integer> byTime = new ArrayList<Integer>();
+    ArrayList<String> scoring = new ArrayList<String>();
+
+    try {
+      in = new ObjectInputStream(new FileInputStream("MatchingGame.bin"));
+
+      while (true) {
+
+        Object o = in.readObject();
+        Object p = in.readObject();
+        Object l = in.readObject();
+
+        String placehold = l+""; //formats the time so it goes from being "1:23" to 83
+        int minutes = Integer.parseInt(placehold.substring(0, placehold.indexOf(':')));
+        int seconds = Integer.parseInt(placehold.substring(placehold.indexOf(':')+1));
+        int duration = MINUTE * minutes + seconds;
+
+        byTime.add(duration);
+        scoring.add("\n" + o + " turns to win in " + l + " minutes at " + p + " difficulty");
+      }
+    } 
+    catch (FileNotFoundException e1) {
+
+      scores = "No scores yet!";
+      JOptionPane.showMessageDialog(null, scores);
+
+    } 
+    catch (IOException e) {//when at end of file, order
+
+      int currentIndex = 0;
+      int size = byTime.size();
+
+      for(int i = 0; i<size; i++) {
+
+        currentIndex = byTime.indexOf(Collections.min(byTime));
+        scores = scores + scoring.get(currentIndex);
+
+        byTime.remove(currentIndex);
+        scoring.remove(currentIndex);
+
+      }
+
+      JOptionPane.showMessageDialog(null, scores);
+
+    } 
+    catch (ClassNotFoundException e3) {
+
+      System.out.println("Class not found Exception while reading play");
+
+    }
+
+  }
+
+  public static void main(String[] args) {
+
+    readGame(); // reads the saved game (if one exists)
+
+    Play game = new Play("EASY"); // creates a new game (default is easy)
+
+    boolean play=true;
+    while(play) {
+      game.turn();
+    } //a loop that will run forever
+
+  }
+}
